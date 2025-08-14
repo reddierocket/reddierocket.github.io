@@ -99,6 +99,18 @@
     <footer style="text-align:center; font-size: 0.9em; margin-top: 30px; color: #777;">
         Created with ❤️ for Korean learners | rockthecat.com
     </footer>
+<script>
+  // Change this number whenever you make updates
+  const version = '1.0.0';
+
+  // Update all local links to include ?v=version
+  document.querySelectorAll('a').forEach(link => {
+    const href = link.getAttribute('href');
+    if (href && !href.startsWith('http') && !href.startsWith('#')) {
+      link.setAttribute('href', href + (href.includes('?') ? '&' : '?') + 'v=' + version);
+    }
+  });
+</script>
 
 </body>
 </html>
