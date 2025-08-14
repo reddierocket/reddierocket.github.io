@@ -100,17 +100,36 @@
         Created with ❤️ for Korean learners | rockthecat.com
     </footer>
 <script>
-  // Change this number whenever you make updates
+  // Change this version whenever you update your site
   const version = '1.0.0';
 
-  // Update all local links to include ?v=version
+  function addVersionParam(url) {
+    // Skip if already an absolute URL or an anchor link
+    if (!url || url.startsWith('http') || url.startsWith('#')) return url;
+    return url + (url.includes('?') ? '&' : '?') + 'v=' + version;
+  }
+
+  // Update all anchor tags
   document.querySelectorAll('a').forEach(link => {
-    const href = link.getAttribute('href');
-    if (href && !href.startsWith('http') && !href.startsWith('#')) {
-      link.setAttribute('href', href + (href.includes('?') ? '&' : '?') + 'v=' + version);
-    }
+    link.href = addVersionParam(link.getAttribute('href'));
+  });
+
+  // Update all scripts
+  document.querySelectorAll('script[src]').forEach(script => {
+    script.src = addVersionParam(script.getAttribute('src'));
+  });
+
+  // Update all stylesheets
+  document.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
+    link.href = addVersionParam(link.getAttribute('href'));
+  });
+
+  // Update all images
+  document.querySelectorAll('img').forEach(img => {
+    img.src = addVersionParam(img.getAttribute('src'));
   });
 </script>
+
 
 </body>
 </html>
