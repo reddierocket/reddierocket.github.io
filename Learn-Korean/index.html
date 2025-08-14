@@ -3,25 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Learn Korean</title>
+<title>Learn Korean Dashboard</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    max-width: 800px;
-    margin: auto;
-    padding: 20px;
-    background-color: #f5f5f5;
-  }
+  body { font-family: Arial, sans-serif; max-width: 800px; margin: auto; padding: 20px; background-color: #f5f5f5; }
   h1 { text-align: center; }
   #user-info { text-align: center; margin-bottom: 20px; font-weight: bold; }
+  #section-list a {
+    display: block;
+    padding: 10px;
+    margin: 5px 0;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    text-decoration: none;
+    color: #333;
+  }
+  #section-list a:hover { background: #eef; }
+  button { margin-top: 10px; }
 </style>
 </head>
 <body>
 
-<h1>Learn Korean</h1>
-<p id="user-info"></p>
+<h1>Learn Korean Dashboard</h1>
 
-<!-- Your Learn-Korean content goes here -->
+<p id="user-info"></p>
+<button id="sign-out-button">Sign Out</button>
+
+<h2>Sections</h2>
+<div id="section-list">
+  <a href="section1.html">Month 1: Writing & Survival Phrases</a>
+  <a href="section2.html">Month 2: Vocabulary & Diary</a>
+  <a href="section3.html">Month 3: Listening & Speaking</a>
+  <a href="section4.html">Month 4+: Conversations & Thinking in Korean</a>
+</div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
@@ -40,14 +54,18 @@
   const auth = getAuth(app);
 
   const userInfo = document.getElementById("user-info");
+  const signOutBtn = document.getElementById("sign-out-button");
 
   onAuthStateChanged(auth, user => {
     if (user) {
       userInfo.textContent = `Signed in as: ${user.email}`;
     } else {
-      // Not signed in, redirect back to portal
       window.location.href = "/";
     }
+  });
+
+  signOutBtn.addEventListener("click", () => {
+    signOut(auth);
   });
 </script>
 
