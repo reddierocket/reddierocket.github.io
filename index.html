@@ -12,12 +12,8 @@
     padding: 20px;
     background-color: #f5f5f5;
   }
-  h1 {
-    text-align: center;
-  }
-  .hidden {
-    display: none;
-  }
+  h1 { text-align: center; }
+  .hidden { display: none; }
   .project-list a {
     display: block;
     padding: 10px;
@@ -28,9 +24,7 @@
     text-decoration: none;
     color: #333;
   }
-  .project-list a:hover {
-    background: #eef;
-  }
+  .project-list a:hover { background: #eef; }
 </style>
 </head>
 <body>
@@ -39,37 +33,77 @@
 
 <div id="login-screen">
   <p>Please sign in to see available projects.</p>
-  <input type="text" id="username" placeholder="Enter username">
-  <button onclick="signIn()">Sign In</button>
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+  <button id="sign-in-button">Sign In</button>
+  <p>Or <button id="sign-up-button">Create account</button></p>
 </div>
 
 <div id="project-screen" class="hidden">
   <h2>Available Projects</h2>
   <div class="project-list">
     <a href="/Learn-Korean/">📘 Learn Korean</a>
-    <!-- Future projects can be added here -->
-    <a href="#">🚧 Another Project (Coming Soon)</a>
+    <!-- Add more projects here -->
   </div>
+  <button id="sign-out-button">Sign Out</button>
 </div>
 
-<script>
-  function signIn() {
-    const name = document.getElementById("username").value.trim();
-    if (name) {
-      localStorage.setItem("rtc_username", name);
-      document.getElementById("login-screen").classList.add("hidden");
-      document.getElementById("project-screen").classList.remove("hidden");
-    } else {
-      alert("Please enter a username to sign in.");
-    }
-  }
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js";
 
-  // Auto sign-in if username is saved
-  const savedName = localStorage.getItem("rtc_username");
-  if (savedName) {
-    document.getElementById("login-screen").classList.add("hidden");
-    document.getElementById("project-screen").classList.remove("hidden");
-  }
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyDU71Csn0moQ8AGOsPIJOkVMAmVODzZiEU",
+  authDomain: "rockthecat-d9617.firebaseapp.com",
+  projectId: "rockthecat-d9617",
+  storageBucket: "rockthecat-d9617.firebasestorage.app",
+  messagingSenderId: "537950791174",
+  appId: "1:537950791174:web:a5a2434536e3cf95f9c587"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  const loginScreen = document.getElementById("login-screen");
+  const projectScreen = document.getElementById("project-screen");
+
+  const emailInput = document.getElementById("email");
+  const passwordInput = document.getElementById("password");
+
+  document.getElementById("sign-in-button").addEventListener("click", () => {
+    const email = emailInput.value;
+    const password = passwordInput.value;
+
+    signInWithEmailAndPassword(auth, email, password)
+      .catch(error => alert("Sign-in failed: " + error.message));
+  });
+
+  document.getElementById("sign-up-button").addEventListener("click", () => {
+    const email = emailInput.value;
+    const password = passwordInput.value;
+
+    createUserWithEmailAndPassword(auth, email, password)
+      .catch(error => alert("Sign-up failed: " + error.message));
+  });
+
+  document.getElementById("sign-out-button").addEventListener("click", () => {
+    signOut(auth);
+  });
+
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      loginScreen.classList.add("hidden");
+      projectScreen.classList.remove("hidden");
+    } else {
+      loginScreen.classList.remove("hidden");
+      projectScreen.classList.add("hidden");
+    }
+  });
 </script>
 
 </body>
