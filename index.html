@@ -1,100 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Language Learning Hub</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RockTheCat Projects</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    background-color: #f5f5f5;
+  }
+  h1 {
+    text-align: center;
+  }
+  .hidden {
+    display: none;
+  }
+  .project-list a {
+    display: block;
+    padding: 10px;
+    margin: 5px 0;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    text-decoration: none;
+    color: #333;
+  }
+  .project-list a:hover {
+    background: #eef;
+  }
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>Language Learning Hub</h1>
 
-    <!-- Login Form -->
-    <form id="loginForm" class="card">
-      <label>
-        Username:
-        <input type="text" id="username" required>
-      </label>
-      <label>
-        Password:
-        <input type="password" id="password" required>
-      </label>
-      <button type="submit">Sign In</button>
-    </form>
+<h1>Welcome to RockTheCat</h1>
 
-    <!-- Project List -->
-    <div id="projectList" class="card" style="display:none;">
-      <h2>Welcome, <span id="displayUser"></span>!</h2>
-      <ul id="projects"></ul>
-      <button id="logoutBtn" class="secondary">Log Out</button>
-    </div>
+<div id="login-screen">
+  <p>Please sign in to see available projects.</p>
+  <input type="text" id="username" placeholder="Enter username">
+  <button onclick="signIn()">Sign In</button>
+</div>
+
+<div id="project-screen" class="hidden">
+  <h2>Available Projects</h2>
+  <div class="project-list">
+    <a href="/Learn-Korean/">📘 Learn Korean</a>
+    <!-- Future projects can be added here -->
+    <a href="#">🚧 Another Project (Coming Soon)</a>
   </div>
+</div>
 
-  <script src="cache-bust.js"></script>
-  <script>
-    // User-specific projects
-    const userProjects = {
-      "admin": [
-        { name: "Learn Korean", url: "Learn-Korean/index.html" }
-        // Add more admin projects here
-      ],
-      "guest": [
-        { name: "Learn Korean", url: "Learn-Korean/index.html" }
-      ]
-    };
-
-    const loginForm = document.getElementById('loginForm');
-    const projectList = document.getElementById('projectList');
-    const displayUser = document.getElementById('displayUser');
-    const projectsUl = document.getElementById('projects');
-    const logoutBtn = document.getElementById('logoutBtn');
-
-    // Auto-login if remembered
-    window.onload = () => {
-      const savedUser = localStorage.getItem('username');
-      if (savedUser) showProjects(savedUser);
-    };
-
-    // Handle login
-    loginForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const user = document.getElementById('username').value.toLowerCase();
-      const pass = document.getElementById('password').value;
-
-      // Placeholder authentication
-      if (user && pass) {
-        localStorage.setItem('username', user);
-        showProjects(user);
-      } else {
-        alert("Invalid credentials");
-      }
-    });
-
-    // Handle logout
-    logoutBtn.addEventListener('click', () => {
-      localStorage.removeItem('username');
-      projectList.style.display = 'none';
-      loginForm.style.display = 'flex';
-    });
-
-    // Show project list
-    function showProjects(user) {
-      loginForm.style.display = 'none';
-      projectList.style.display = 'block';
-      displayUser.textContent = user;
-
-      // Clear and repopulate project list
-      projectsUl.innerHTML = '';
-      (userProjects[user] || []).forEach(proj => {
-        const li = document.createElement('li');
-        const a = document.createElement('a');
-        a.href = proj.url;
-        a.textContent = proj.name;
-        li.appendChild(a);
-        projectsUl.appendChild(li);
-      });
+<script>
+  function signIn() {
+    const name = document.getElementById("username").value.trim();
+    if (name) {
+      localStorage.setItem("rtc_username", name);
+      document.getElementById("login-screen").classList.add("hidden");
+      document.getElementById("project-screen").classList.remove("hidden");
+    } else {
+      alert("Please enter a username to sign in.");
     }
-  </script>
+  }
+
+  // Auto sign-in if username is saved
+  const savedName = localStorage.getItem("rtc_username");
+  if (savedName) {
+    document.getElementById("login-screen").classList.add("hidden");
+    document.getElementById("project-screen").classList.remove("hidden");
+  }
+</script>
+
 </body>
 </html>
