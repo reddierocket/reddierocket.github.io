@@ -1,135 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fluent Korean in 1 Year</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: auto;
-            background-color: #f9f9f9;
-            color: #333;
-            padding: 20px;
-        }
-        h1, h2 {
-            text-align: center;
-            color: #2c3e50;
-        }
-        section {
-            background: white;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        }
-        ul {
-            list-style-type: none;
-            padding-left: 0;
-        }
-        li {
-            margin: 6px 0;
-        }
-        .month-title {
-            font-weight: bold;
-            color: #16a085;
-        }
-        .check {
-            color: #27ae60;
-            margin-right: 5px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Language Learning Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="container">
+    <h1>Language Learning Hub</h1>
 
-    <h1>Fluent Korean in 1 Year</h1>
-    <p style="text-align:center;">A step-by-step plan to reach Korean fluency in 12 months.</p>
+    <!-- Login Form -->
+    <form id="loginForm" class="card">
+      <label>
+        Username:
+        <input type="text" id="username" required>
+      </label>
+      <label>
+        Password:
+        <input type="password" id="password" required>
+      </label>
+      <button type="submit">Sign In</button>
+    </form>
 
-    <section>
-        <h2>Month 1 — August 4</h2>
-        <ul>
-            <li>Learn Korean writing (Hangul)</li>
-            <li>Learn 30 survival phrases (ordering food, weather, directions, etc.)</li>
-            <li>Write 3 Korean sentences per day</li>
-        </ul>
-    </section>
+    <!-- Project List -->
+    <div id="projectList" class="card" style="display:none;">
+      <h2>Welcome, <span id="displayUser"></span>!</h2>
+      <ul id="projects"></ul>
+      <button id="logoutBtn" class="secondary">Log Out</button>
+    </div>
+  </div>
 
-    <section>
-        <h2>Months 2–3 — September 4</h2>
-        <ul>
-            <li>Learn 5 new words daily</li>
-            <li>Review all words on flashcards</li>
-            <li>Write 3–5 diary sentences daily</li>
-            <li>Read 1 short webtoon chapter or article daily</li>
-        </ul>
-    </section>
+  <script src="cache-bust.js"></script>
+  <script>
+    // User-specific projects
+    const userProjects = {
+      "admin": [
+        { name: "Learn Korean", url: "Learn-Korean/index.html" }
+        // Add more admin projects here
+      ],
+      "guest": [
+        { name: "Learn Korean", url: "Learn-Korean/index.html" }
+      ]
+    };
 
-    <section>
-        <h2>Months 4–6 — November 4</h2>
-        <ul>
-            <li>Continue previous tasks</li>
-            <li>Listen to a 5-minute podcast daily</li>
-            <li>Say 5 sentences from podcasts, TTMIK, etc.</li>
-            <li>Record a 1-minute voice note daily</li>
-        </ul>
-    </section>
+    const loginForm = document.getElementById('loginForm');
+    const projectList = document.getElementById('projectList');
+    const displayUser = document.getElementById('displayUser');
+    const projectsUl = document.getElementById('projects');
+    const logoutBtn = document.getElementById('logoutBtn');
 
-    <section>
-        <h2>Months 7–9 — February 4</h2>
-        <ul>
-            <li>Continue previous tasks</li>
-            <li>Use a TTMIK structured dialogue, read along and mimic a full conversation</li>
-            <li>Increase diary entries to 5–10 sentences daily</li>
-            <li>Increase daily recordings to 2 minutes</li>
-        </ul>
-    </section>
+    // Auto-login if remembered
+    window.onload = () => {
+      const savedUser = localStorage.getItem('username');
+      if (savedUser) showProjects(savedUser);
+    };
 
-    <section>
-        <h2>Months 10–12 — May 4</h2>
-        <ul>
-            <li>Continue previous tasks</li>
-            <li>Watch Korean content without subtitles</li>
-            <li>Write diary entries without looking anything up</li>
-            <li>Chat with a Korean chatbot for at least 5 minutes daily</li>
-            <li>Think in Korean during activities</li>
-        </ul>
-    </section>
+    // Handle login
+    loginForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const user = document.getElementById('username').value.toLowerCase();
+      const pass = document.getElementById('password').value;
 
-    <footer style="text-align:center; font-size: 0.9em; margin-top: 30px; color: #777;">
-        Created with ❤️ for Korean learners | rockthecat.com
-    </footer>
-<script>
-  // Change this version whenever you update your site
-  const version = '1.0.0';
+      // Placeholder authentication
+      if (user && pass) {
+        localStorage.setItem('username', user);
+        showProjects(user);
+      } else {
+        alert("Invalid credentials");
+      }
+    });
 
-  function addVersionParam(url) {
-    // Skip if already an absolute URL or an anchor link
-    if (!url || url.startsWith('http') || url.startsWith('#')) return url;
-    return url + (url.includes('?') ? '&' : '?') + 'v=' + version;
-  }
+    // Handle logout
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('username');
+      projectList.style.display = 'none';
+      loginForm.style.display = 'flex';
+    });
 
-  // Update all anchor tags
-  document.querySelectorAll('a').forEach(link => {
-    link.href = addVersionParam(link.getAttribute('href'));
-  });
+    // Show project list
+    function showProjects(user) {
+      loginForm.style.display = 'none';
+      projectList.style.display = 'block';
+      displayUser.textContent = user;
 
-  // Update all scripts
-  document.querySelectorAll('script[src]').forEach(script => {
-    script.src = addVersionParam(script.getAttribute('src'));
-  });
-
-  // Update all stylesheets
-  document.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
-    link.href = addVersionParam(link.getAttribute('href'));
-  });
-
-  // Update all images
-  document.querySelectorAll('img').forEach(img => {
-    img.src = addVersionParam(img.getAttribute('src'));
-  });
-</script>
-
-
+      // Clear and repopulate project list
+      projectsUl.innerHTML = '';
+      (userProjects[user] || []).forEach(proj => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = proj.url;
+        a.textContent = proj.name;
+        li.appendChild(a);
+        projectsUl.appendChild(li);
+      });
+    }
+  </script>
 </body>
 </html>
