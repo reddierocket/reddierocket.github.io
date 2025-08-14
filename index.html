@@ -45,6 +45,7 @@
     <a href="/Learn-Korean/">📘 Learn Korean</a>
     <!-- Add more projects here -->
   </div>
+  <p id="user-info"></p>
   <button id="sign-out-button">Sign Out</button>
 </div>
 
@@ -53,24 +54,21 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js";
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyDU71Csn0moQ8AGOsPIJOkVMAmVODzZiEU",
-  authDomain: "rockthecat-d9617.firebaseapp.com",
-  projectId: "rockthecat-d9617",
-  storageBucket: "rockthecat-d9617.firebasestorage.app",
-  messagingSenderId: "537950791174",
-  appId: "1:537950791174:web:a5a2434536e3cf95f9c587"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+  const firebaseConfig = {
+    apiKey: "AIzaSyDU71Csn0moQ8AGOsPIJOkVMAmVODzZiEU",
+    authDomain: "rockthecat-d9617.firebaseapp.com",
+    projectId: "rockthecat-d9617",
+    storageBucket: "rockthecat-d9617.firebasestorage.app",
+    messagingSenderId: "537950791174",
+    appId: "1:537950791174:web:a5a2434536e3cf95f9c587"
+  };
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
 
   const loginScreen = document.getElementById("login-screen");
   const projectScreen = document.getElementById("project-screen");
+  const userInfo = document.getElementById("user-info");
 
   const emailInput = document.getElementById("email");
   const passwordInput = document.getElementById("password");
@@ -95,13 +93,16 @@ const app = initializeApp(firebaseConfig);
     signOut(auth);
   });
 
+  // Show/hide screens based on authentication state
   onAuthStateChanged(auth, user => {
     if (user) {
       loginScreen.classList.add("hidden");
       projectScreen.classList.remove("hidden");
+      userInfo.textContent = "Signed in as: " + user.email;
     } else {
       loginScreen.classList.remove("hidden");
       projectScreen.classList.add("hidden");
+      userInfo.textContent = "";
     }
   });
 </script>
