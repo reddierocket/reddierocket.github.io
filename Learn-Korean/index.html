@@ -1,77 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Learn Korean</title>
-  <link rel="stylesheet" href="../style.css">
-  <script src="../cache-bust.js" defer></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learn Korean</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+    background-color: #f5f5f5;
+  }
+  h1 { text-align: center; }
+  #user-info { text-align: center; margin-bottom: 20px; font-weight: bold; }
+</style>
 </head>
 <body>
-  <header>
-    <h1>Fluent Korean in 1 Year</h1>
-  </header>
 
-  <main>
-    <section>
-      <h2>Plan Overview</h2>
-      <p>Follow this month-by-month roadmap to build fluency in Korean within one year.</p>
-    </section>
+<h1>Learn Korean</h1>
+<p id="user-info"></p>
 
-    <section>
-      <h3>August (Month 1)</h3>
-      <ul>
-        <li>Weeks 1–2: Learn Korean writing</li>
-        <li>Weeks 3–4: Learn 30 survival phrases (order food, weather, directions, etc.)</li>
-        <li>Weeks 3–4: Write 3 Korean sentences per day</li>
-      </ul>
-    </section>
+<!-- Your Learn-Korean content goes here -->
 
-    <section>
-      <h3>September (Month 2)</h3>
-      <ul>
-        <li>Learn 5 new words daily</li>
-        <li>Review all words with flashcards</li>
-        <li>Write 3–5 sentences in diary</li>
-        <li>Read 1 short webtoon chapter or 1 article</li>
-      </ul>
-    </section>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js";
 
-    <section>
-      <h3>November (Month 3)</h3>
-      <ul>
-        <li>Learn 5 new words daily</li>
-        <li>Review all words with flashcards</li>
-        <li>Write 3–5 sentences in diary</li>
-        <li>Read 1 short webtoon chapter or 1 article</li>
-        <li>Listen to a 5-minute podcast</li>
-        <li>Say 5 sentences from podcast, TTMIK, etc.</li>
-        <li>Record a 1-minute voice note</li>
-      </ul>
-    </section>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDU71Csn0moQ8AGOsPIJOkVMAmVODzZiEU",
+    authDomain: "rockthecat-d9617.firebaseapp.com",
+    projectId: "rockthecat-d9617",
+    storageBucket: "rockthecat-d9617.firebasestorage.app",
+    messagingSenderId: "537950791174",
+    appId: "1:537950791174:web:a5a2434536e3cf95f9c587"
+  };
 
-    <section>
-      <h3>February (Month 6)</h3>
-      <ul>
-        <li>Use structured dialog in TTMIK, reading & mimicking full conversation</li>
-        <li>Increase diary to 5–10 sentences</li>
-        <li>Increase daily recordings to 2 minutes</li>
-      </ul>
-    </section>
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
 
-    <section>
-      <h3>May (Month 9)</h3>
-      <ul>
-        <li>Watch Korean content on Netflix/YouTube with no subtitles</li>
-        <li>Write diary entries without looking things up</li>
-        <li>Chat with Korean chatbot for 5 minutes</li>
-        <li>Think in Korean while doing activities</li>
-      </ul>
-    </section>
-  </main>
+  const userInfo = document.getElementById("user-info");
 
-  <footer>
-    <p>&copy; 2025 RockTheCat Korean Project</p>
-  </footer>
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      userInfo.textContent = `Signed in as: ${user.email}`;
+    } else {
+      // Not signed in, redirect back to portal
+      window.location.href = "/";
+    }
+  });
+</script>
+
 </body>
 </html>
