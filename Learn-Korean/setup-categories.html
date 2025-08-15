@@ -82,11 +82,12 @@
 
     // Hook up the button click
     window.runSetup = function() {
-      setupCategoriesForAdmin().catch(err => {
-        console.error("Error running setup:", err);
-        alert("Error: " + err.message);
-      });
-    }
+    setupCategoriesForAdmin().catch(err => {
+    console.error("Error running setup:", err);
+    alert("Error: " + err.message);
+    document.getElementById("log").textContent += `\nError: ${err.message}`;
+  });
+}
 
     auth.onAuthStateChanged((user) => {
       const status = document.getElementById("status");
