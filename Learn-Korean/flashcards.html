@@ -2,213 +2,149 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Learn Korean - Flashcards</title>
+<title>Flashcards</title>
 <style>
-  body { font-family: Arial, sans-serif; margin: 20px; }
-  .hidden { display: none; }
-  .flashcard { border: 1px solid #ccc; padding: 10px; margin: 5px; border-radius: 6px; }
-  .category-chip { display: inline-block; padding: 2px 6px; background: #eee; border-radius: 4px; margin-right: 5px; font-size: 0.85em; }
+  body { font-family: sans-serif; max-width: 700px; margin: 2rem auto; }
+  label { display: block; margin-top: 1rem; }
+  input, select, textarea { width: 100%; padding: 0.5rem; margin-top: 0.3rem; }
+  button { margin-top: 1rem; padding: 0.5rem 1rem; }
 </style>
 </head>
 <body>
+<h1>Create a Flashcard</h1>
 
-<h1>Flashcards</h1>
-<p id="user-info"></p>
-
-<!-- Add New Flashcard -->
-<h2>Add Flashcard</h2>
-<form id="add-card-form">
-  <label>Korean: <input type="text" id="ko-text" required></label><br><br>
-  <label>English: <input type="text" id="en-text" required></label><br><br>
-  
-  <label>Categories:
-    <input type="text" id="category-search" placeholder="Search or create" list="category-options">
-    <datalist id="category-options"></datalist>
+<form id="flashcard-form">
+  <label>
+    Front (English/Korean):
+    <input type="text" id="front" required>
   </label>
-  <button type="button" id="add-category-btn">Add Category</button>
-  <div id="selected-categories"></div>
-  <br>
-  
-  <button type="submit">Save Card</button>
+
+  <label>
+    Back (Translation/Answer):
+    <input type="text" id="back" required>
+  </label>
+
+  <label>
+    Categories (select multiple with Ctrl/Cmd or type to search):
+    <input type="text" id="category-search" placeholder="Search categories...">
+    <select id="categories" multiple size="6"></select>
+  </label>
+
+  <button type="submit">Create Flashcard</button>
 </form>
 
-<hr>
-
-<!-- Filters -->
-<h2>Filters</h2>
-<label>Date From: <input type="date" id="filter-date-from"></label>
-<label>Date To: <input type="date" id="filter-date-to"></label>
-<br><br>
-<label>Filter Category:
-  <input type="text" id="filter-category" list="filter-category-options">
-  <datalist id="filter-category-options"></datalist>
+<h2>Filter Flashcards</h2>
+<label>
+  Show flashcards created after:
+  <input type="date" id="filter-date">
 </label>
-<br><br>
-<label><input type="checkbox" id="show-archived"> Show Archived</label>
-<label><input type="checkbox" id="toggle-language"> Show Korean First</label>
-<br><br>
-<button id="apply-filters">Apply Filters</button>
 
-<hr>
-
-<!-- Flashcards Display -->
-<div id="flashcards-list"></div>
+<div id="flashcard-list"></div>
+<div id="status"></div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, updateDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { auth, db } from "./firebase-setup.js";
+import { collection, addDoc, serverTimestamp, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyDU71Csn0moQ8AGOsPIJOkVMAmVODzZiEU",
-  authDomain: "rockthecat-d9617.firebaseapp.com",
-  projectId: "rockthecat-d9617",
-  storageBucket: "rockthecat-d9617.firebasestorage.app",
-  messagingSenderId: "537950791174",
-  appId: "1:537950791174:web:a5a2434536e3cf95f9c587"
-};
+// Standard categories
+const standardCategories = ["intro","medical","family","grammar","business","formal","sino","food","animals","activities","travel","vocabulary"];
 
-// Init Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+let userCategories = []; // user-defined categories (load from db later if needed)
+const categoriesSelect = document.getElementById("categories");
+const categorySearch = document.getElementById("category-search");
 
-let currentUser = null;
-let selectedCategories = [];
-let standardCategories = [];
-let privateCategories = [];
-
-// Load user
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    currentUser = user;
-    document.getElementById("user-info").textContent = `Signed in as ${user.email}`;
-    await loadCategories();
-    await loadFlashcards();
-  } else {
-    document.getElementById("user-info").textContent = "Not signed in.";
-  }
-});
-
-// Load categories
-async function loadCategories() {
-  // Standard
-  const stdSnap = await getDocs(collection(db, "categories", "standard", "items"));
-  standardCategories = stdSnap.docs.map(doc => doc.id);
-
-  // Private
-  const privSnap = await getDocs(collection(db, "users", currentUser.uid, "categories"));
-  privateCategories = privSnap.docs.map(doc => doc.id);
-
-  updateCategoryLists();
-}
-
-function updateCategoryLists() {
-  const catList = [...standardCategories, ...privateCategories];
-  const options = document.getElementById("category-options");
-  const filterOptions = document.getElementById("filter-category-options");
-  options.innerHTML = "";
-  filterOptions.innerHTML = "";
-  catList.forEach(cat => {
-    const opt = document.createElement("option");
-    opt.value = cat;
-    options.appendChild(opt);
-    const opt2 = document.createElement("option");
-    opt2.value = cat;
-    filterOptions.appendChild(opt2);
+// Populate category list
+function populateCategories() {
+  categoriesSelect.innerHTML = "";
+  [...standardCategories, ...userCategories].forEach(cat => {
+    const option = document.createElement("option");
+    option.value = cat;
+    option.textContent = cat;
+    categoriesSelect.appendChild(option);
   });
 }
 
-// Add category to selection
-document.getElementById("add-category-btn").addEventListener("click", () => {
-  const cat = document.getElementById("category-search").value.trim();
-  if (cat && !selectedCategories.includes(cat)) {
-    selectedCategories.push(cat);
-    renderSelectedCategories();
-  }
+// Filter categories by search
+categorySearch.addEventListener("input", () => {
+  const search = categorySearch.value.toLowerCase();
+  [...categoriesSelect.options].forEach(opt => {
+    opt.style.display = opt.value.toLowerCase().includes(search) ? "block" : "none";
+  });
 });
 
-function renderSelectedCategories() {
-  const container = document.getElementById("selected-categories");
-  container.innerHTML = "";
-  selectedCategories.forEach(cat => {
-    const chip = document.createElement("span");
-    chip.className = "category-chip";
-    chip.textContent = cat;
-    container.appendChild(chip);
-  });
-}
+populateCategories();
 
-// Save card
-document.getElementById("add-card-form").addEventListener("submit", async (e) => {
+// Create flashcard
+document.getElementById("flashcard-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const ko = document.getElementById("ko-text").value.trim();
-  const en = document.getElementById("en-text").value.trim();
-
-  await addDoc(collection(db, "users", currentUser.uid, "flashcards"), {
-    ko, en,
-    categories: selectedCategories,
-    createdAt: serverTimestamp(),
-    lastReviewed: null,
-    archived: false
-  });
-
-  // Save any new private categories
-  for (const cat of selectedCategories) {
-    if (!standardCategories.includes(cat) && !privateCategories.includes(cat)) {
-      await addDoc(collection(db, "users", currentUser.uid, "categories"), {});
-    }
+  const user = auth.currentUser;
+  if (!user) {
+    alert("You must be signed in to create a flashcard.");
+    return;
   }
 
-  selectedCategories = [];
-  renderSelectedCategories();
-  document.getElementById("add-card-form").reset();
-  await loadFlashcards();
+  const front = document.getElementById("front").value.trim();
+  const back = document.getElementById("back").value.trim();
+  const selectedCategories = [...categoriesSelect.selectedOptions].map(opt => opt.value);
+
+  try {
+    await addDoc(collection(db, "flashcards"), {
+      front,
+      back,
+      categories: selectedCategories,
+      ownerId: user.uid,
+      createdAt: serverTimestamp()
+    });
+    document.getElementById("status").textContent = "✅ Flashcard created!";
+    document.getElementById("flashcard-form").reset();
+  } catch (error) {
+    console.error(error);
+    document.getElementById("status").textContent = "❌ Error creating flashcard. Check console.";
+  }
+
+  loadFlashcards(); // refresh list
 });
 
-// Load flashcards
-async function loadFlashcards(filters = {}) {
-  let q = collection(db, "users", currentUser.uid, "flashcards");
-  const snap = await getDocs(q);
-  const list = document.getElementById("flashcards-list");
-  list.innerHTML = "";
+// Load and display flashcards
+async function loadFlashcards() {
+  const user = auth.currentUser;
+  if (!user) return;
 
-  snap.forEach(docSnap => {
-    const data = docSnap.data();
-    if (!filters.showArchived && data.archived) return;
+  const flashcardList = document.getElementById("flashcard-list");
+  flashcardList.innerHTML = "";
 
-    // Date filter
-    if (filters.from && data.createdAt?.toDate() < filters.from) return;
-    if (filters.to && data.createdAt?.toDate() > filters.to) return;
+  let q = query(collection(db, "flashcards"), orderBy("createdAt", "desc"));
 
-    // Category filter
-    if (filters.category && !data.categories.includes(filters.category)) return;
+  // Filter by date if selected
+  const filterDate = document.getElementById("filter-date").value;
+  if (filterDate) {
+    const date = new Date(filterDate);
+    q = query(q, where("createdAt", ">", date));
+  }
 
-    const div = document.createElement("div");
-    div.className = "flashcard";
-    div.innerHTML = `
-      <strong>${filters.showKoreanFirst ? data.ko : data.en}</strong><br>
-      ${filters.showKoreanFirst ? data.en : data.ko}<br>
-      Categories: ${data.categories.map(c => `<span class="category-chip">${c}</span>`).join("")}
-    `;
-    list.appendChild(div);
+  const snapshot = await getDocs(q);
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    // Only show cards owned by this user
+    if (data.ownerId === user.uid) {
+      const div = document.createElement("div");
+      div.style.border = "1px solid #ccc";
+      div.style.padding = "0.5rem";
+      div.style.marginTop = "0.5rem";
+      div.innerHTML = `<strong>${data.front}</strong> → ${data.back}<br>
+                       Categories: ${data.categories.join(", ")}`;
+      flashcardList.appendChild(div);
+    }
   });
 }
 
-// Apply filters
-document.getElementById("apply-filters").addEventListener("click", () => {
-  const filters = {
-    from: document.getElementById("filter-date-from").value ? new Date(document.getElementById("filter-date-from").value) : null,
-    to: document.getElementById("filter-date-to").value ? new Date(document.getElementById("filter-date-to").value) : null,
-    category: document.getElementById("filter-category").value || null,
-    showArchived: document.getElementById("show-archived").checked,
-    showKoreanFirst: document.getElementById("toggle-language").checked
-  };
-  loadFlashcards(filters);
+// Reload flashcards when date filter changes
+document.getElementById("filter-date").addEventListener("change", loadFlashcards);
+
+// Initial load when signed in
+auth.onAuthStateChanged(user => {
+  if (user) loadFlashcards();
 });
 </script>
-
 </body>
 </html>
