@@ -9,23 +9,8 @@
 <div id="status">Starting...</div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDU71Csn0moQ8AGOsPIJOkVMAmVODzZiEU",
-  authDomain: "rockthecat-d9617.firebaseapp.com",
-  projectId: "rockthecat-d9617",
-  storageBucket: "rockthecat-d9617.firebasestorage.app",
-  messagingSenderId: "537950791174",
-  appId: "1:537950791174:web:a5a2434536e3cf95f9c587"
-};
-
+import { auth, db } from "../firebase-setup.js";
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
 const standardCategories = [
   "intro", "medical", "family", "grammar", "business",
   "formal", "sino", "food", "animals", "activities",
