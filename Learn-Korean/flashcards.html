@@ -65,7 +65,7 @@
 <div id="status"></div>
 
 <script type="module">
-import { auth, db } from "../firebase-setup.js";
+import { auth, db, app } from "../firebase-setup.js";
 import { collection, addDoc, serverTimestamp, query, where, getDocs, orderBy, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // Standard categories
