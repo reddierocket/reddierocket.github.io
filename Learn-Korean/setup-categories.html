@@ -38,7 +38,7 @@
       const skippedList = [];
 
       const logArea = document.getElementById("log");
-      logArea.textContent = ""; // clear previous logs
+      logArea.textContent = "*** log ***\n\n"; // clear previous logs
 
       const standardQuery = query(collection(db, "categories"), where("isStandard", "==", true));
       const standardSnap = await getDocs(standardQuery);
