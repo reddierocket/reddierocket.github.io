@@ -51,8 +51,7 @@
 
 <!-- Firebase SDK -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
-  import { auth, db } from "./firebase-setup.js";
+  import { auth, db, app } from "./firebase-setup.js";
   import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js";
 
   const loginScreen = document.getElementById("login-screen");
