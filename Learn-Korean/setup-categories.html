@@ -9,31 +9,46 @@
 <div id="status">Starting...</div>
 
 <script type="module">
-import { auth, db, app } from "../firebase-setup.js";
-const standardCategories = [
-  "intro", "medical", "family", "grammar", "business",
-  "formal", "sino", "food", "animals", "activities",
-  "travel", "vocabulary"
-];
+import { db } from "../firebase-setup.js";  // adjust path if needed
+import { collection, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    document.getElementById("status").textContent = "You must be signed in.";
-    return;
-  }
+const statusDiv = document.getElementById("status");
 
-  document.getElementById("status").textContent = `Signed in as ${user.email}. Creating categories...`;
-
+async function setupCategories() {
   try {
-    for (let cat of standardCategories) {
-      await setDoc(doc(db, "categories", "standard", "items", cat), { createdBy: user.uid });
+    statusDiv.textContent = "Starting category setup...";
+    console.log("Starting category setup...");
+
+    const standardCategories = [
+      "intro","medical","family","grammar","business",
+      "formal","sino","food","animals","activities","travel","vocabulary"
+    ];
+
+    for (const cat of standardCategories) {
+      console.log("Adding category:", cat);
+      statusDiv.textContent = "Adding category: " + cat;
+
+      await setDoc(doc(db, "categories", cat), {
+        name: cat,
+        isStandard: true
+      });
     }
-    document.getElementById("status").textContent = "✅ Standard categories created successfully!";
-  } catch (error) {
-    console.error(error);
-    document.getElementById("status").textContent = "❌ Error creating categories. Check console.";
+
+    statusDiv.textContent = "All categories added successfully!";
+    console.log("All categories added successfully!");
+
+  } catch (err) {
+    statusDiv.textContent = "Error: " + err.message;
+    console.error("Error during category setup:", err);
   }
-});
+}
+
+// Run setup
+setupCategories();
 </script>
+
+  
+
+
 </body>
 </html>
