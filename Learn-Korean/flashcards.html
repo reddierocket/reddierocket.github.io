@@ -3,193 +3,211 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flashcards</title>
+<title>Learn Korean - Flashcards</title>
 <style>
-  body { font-family: Arial, sans-serif; max-width: 800px; margin: auto; padding: 20px; background-color: #f5f5f5; }
-  h1 { text-align: center; }
-  #user-info { text-align: center; margin-bottom: 20px; font-weight: bold; }
-  #controls { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-  #card { text-align: center; font-size: 1.5em; padding: 20px; background: #fff; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; }
-  button { padding: 8px 12px; }
+  body { font-family: Arial, sans-serif; margin: 20px; }
+  .hidden { display: none; }
+  .flashcard { border: 1px solid #ccc; padding: 10px; margin: 5px; border-radius: 6px; }
+  .category-chip { display: inline-block; padding: 2px 6px; background: #eee; border-radius: 4px; margin-right: 5px; font-size: 0.85em; }
 </style>
 </head>
 <body>
 
 <h1>Flashcards</h1>
 <p id="user-info"></p>
-<button id="sign-out-button">Sign Out</button>
 
-<div id="controls">
-  <label>
-    Filter by date:
-    <select id="date-filter">
-      <option value="all">All</option>
-      <option value="today">Today</option>
-      <option value="week">This Week</option>
-      <option value="month">This Month</option>
-    </select>
+<!-- Add New Flashcard -->
+<h2>Add Flashcard</h2>
+<form id="add-card-form">
+  <label>Korean: <input type="text" id="ko-text" required></label><br><br>
+  <label>English: <input type="text" id="en-text" required></label><br><br>
+  
+  <label>Categories:
+    <input type="text" id="category-search" placeholder="Search or create" list="category-options">
+    <datalist id="category-options"></datalist>
   </label>
+  <button type="button" id="add-category-btn">Add Category</button>
+  <div id="selected-categories"></div>
+  <br>
+  
+  <button type="submit">Save Card</button>
+</form>
 
-  <label>
-    Sort by:
-    <select id="sort-method">
-      <option value="lastReviewed">Last Reviewed</option>
-      <option value="alphabetical">Alphabetical</option>
-      <option value="random">Random</option>
-    </select>
-  </label>
+<hr>
 
-  <label>
-    <input type="checkbox" id="show-archived"> Show Archived
-  </label>
+<!-- Filters -->
+<h2>Filters</h2>
+<label>Date From: <input type="date" id="filter-date-from"></label>
+<label>Date To: <input type="date" id="filter-date-to"></label>
+<br><br>
+<label>Filter Category:
+  <input type="text" id="filter-category" list="filter-category-options">
+  <datalist id="filter-category-options"></datalist>
+</label>
+<br><br>
+<label><input type="checkbox" id="show-archived"> Show Archived</label>
+<label><input type="checkbox" id="toggle-language"> Show Korean First</label>
+<br><br>
+<button id="apply-filters">Apply Filters</button>
 
-  <label>
-    <input type="checkbox" id="toggle-language"> Show English first
-  </label>
-</div>
+<hr>
 
-<div id="card">Loading...</div>
-<div style="text-align:center;">
-  <button id="prev-card">⬅ Previous</button>
-  <button id="next-card">Next ➡</button>
-  <button id="archive-card">Archive / Unarchive</button>
-  <button id="mark-reviewed">Mark Reviewed</button>
-</div>
+<!-- Flashcards Display -->
+<div id="flashcards-list"></div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js";
-  import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, updateDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  // Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyDU71Csn0moQ8AGOsPIJOkVMAmVODzZiEU",
-    authDomain: "rockthecat-d9617.firebaseapp.com",
-    projectId: "rockthecat-d9617",
-    storageBucket: "rockthecat-d9617.firebasestorage.app",
-    messagingSenderId: "537950791174",
-    appId: "1:537950791174:web:a5a2434536e3cf95f9c587"
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyDU71Csn0moQ8AGOsPIJOkVMAmVODzZiEU",
+  authDomain: "rockthecat-d9617.firebaseapp.com",
+  projectId: "rockthecat-d9617",
+  storageBucket: "rockthecat-d9617.firebasestorage.app",
+  messagingSenderId: "537950791174",
+  appId: "1:537950791174:web:a5a2434536e3cf95f9c587"
+};
+
+// Init Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+let selectedCategories = [];
+let standardCategories = [];
+let privateCategories = [];
+
+// Load user
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    currentUser = user;
+    document.getElementById("user-info").textContent = `Signed in as ${user.email}`;
+    await loadCategories();
+    await loadFlashcards();
+  } else {
+    document.getElementById("user-info").textContent = "Not signed in.";
+  }
+});
+
+// Load categories
+async function loadCategories() {
+  // Standard
+  const stdSnap = await getDocs(collection(db, "categories", "standard", "items"));
+  standardCategories = stdSnap.docs.map(doc => doc.id);
+
+  // Private
+  const privSnap = await getDocs(collection(db, "users", currentUser.uid, "categories"));
+  privateCategories = privSnap.docs.map(doc => doc.id);
+
+  updateCategoryLists();
+}
+
+function updateCategoryLists() {
+  const catList = [...standardCategories, ...privateCategories];
+  const options = document.getElementById("category-options");
+  const filterOptions = document.getElementById("filter-category-options");
+  options.innerHTML = "";
+  filterOptions.innerHTML = "";
+  catList.forEach(cat => {
+    const opt = document.createElement("option");
+    opt.value = cat;
+    options.appendChild(opt);
+    const opt2 = document.createElement("option");
+    opt2.value = cat;
+    filterOptions.appendChild(opt2);
+  });
+}
+
+// Add category to selection
+document.getElementById("add-category-btn").addEventListener("click", () => {
+  const cat = document.getElementById("category-search").value.trim();
+  if (cat && !selectedCategories.includes(cat)) {
+    selectedCategories.push(cat);
+    renderSelectedCategories();
+  }
+});
+
+function renderSelectedCategories() {
+  const container = document.getElementById("selected-categories");
+  container.innerHTML = "";
+  selectedCategories.forEach(cat => {
+    const chip = document.createElement("span");
+    chip.className = "category-chip";
+    chip.textContent = cat;
+    container.appendChild(chip);
+  });
+}
+
+// Save card
+document.getElementById("add-card-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const ko = document.getElementById("ko-text").value.trim();
+  const en = document.getElementById("en-text").value.trim();
+
+  await addDoc(collection(db, "users", currentUser.uid, "flashcards"), {
+    ko, en,
+    categories: selectedCategories,
+    createdAt: serverTimestamp(),
+    lastReviewed: null,
+    archived: false
+  });
+
+  // Save any new private categories
+  for (const cat of selectedCategories) {
+    if (!standardCategories.includes(cat) && !privateCategories.includes(cat)) {
+      await addDoc(collection(db, "users", currentUser.uid, "categories"), {});
+    }
+  }
+
+  selectedCategories = [];
+  renderSelectedCategories();
+  document.getElementById("add-card-form").reset();
+  await loadFlashcards();
+});
+
+// Load flashcards
+async function loadFlashcards(filters = {}) {
+  let q = collection(db, "users", currentUser.uid, "flashcards");
+  const snap = await getDocs(q);
+  const list = document.getElementById("flashcards-list");
+  list.innerHTML = "";
+
+  snap.forEach(docSnap => {
+    const data = docSnap.data();
+    if (!filters.showArchived && data.archived) return;
+
+    // Date filter
+    if (filters.from && data.createdAt?.toDate() < filters.from) return;
+    if (filters.to && data.createdAt?.toDate() > filters.to) return;
+
+    // Category filter
+    if (filters.category && !data.categories.includes(filters.category)) return;
+
+    const div = document.createElement("div");
+    div.className = "flashcard";
+    div.innerHTML = `
+      <strong>${filters.showKoreanFirst ? data.ko : data.en}</strong><br>
+      ${filters.showKoreanFirst ? data.en : data.ko}<br>
+      Categories: ${data.categories.map(c => `<span class="category-chip">${c}</span>`).join("")}
+    `;
+    list.appendChild(div);
+  });
+}
+
+// Apply filters
+document.getElementById("apply-filters").addEventListener("click", () => {
+  const filters = {
+    from: document.getElementById("filter-date-from").value ? new Date(document.getElementById("filter-date-from").value) : null,
+    to: document.getElementById("filter-date-to").value ? new Date(document.getElementById("filter-date-to").value) : null,
+    category: document.getElementById("filter-category").value || null,
+    showArchived: document.getElementById("show-archived").checked,
+    showKoreanFirst: document.getElementById("toggle-language").checked
   };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  const userInfo = document.getElementById("user-info");
-  const signOutBtn = document.getElementById("sign-out-button");
-  const cardDiv = document.getElementById("card");
-  const prevBtn = document.getElementById("prev-card");
-  const nextBtn = document.getElementById("next-card");
-  const archiveBtn = document.getElementById("archive-card");
-  const markReviewedBtn = document.getElementById("mark-reviewed");
-
-  const dateFilter = document.getElementById("date-filter");
-  const sortMethod = document.getElementById("sort-method");
-  const showArchived = document.getElementById("show-archived");
-  const toggleLanguage = document.getElementById("toggle-language");
-
-  let flashcards = [];
-  let filteredCards = [];
-  let currentIndex = 0;
-
-  onAuthStateChanged(auth, async user => {
-    if (user) {
-      userInfo.textContent = `Signed in as: ${user.email}`;
-      await loadFlashcards();
-      applyFilters();
-      showCard();
-    } else {
-      window.location.href = "index.html";
-    }
-  });
-
-  signOutBtn.addEventListener("click", () => signOut(auth));
-
-  async function loadFlashcards() {
-    const querySnapshot = await getDocs(collection(db, "flashcards"));
-    flashcards = [];
-    querySnapshot.forEach(docSnap => {
-      const data = docSnap.data();
-      data.id = docSnap.id;
-      flashcards.push(data);
-    });
-  }
-
-  function applyFilters() {
-    const now = new Date();
-    filteredCards = flashcards.filter(card => {
-      if (!showArchived.checked && card.archived) return false;
-
-      const created = new Date(card.createdAt);
-      if (dateFilter.value === "today") {
-        return created.toDateString() === now.toDateString();
-      }
-      if (dateFilter.value === "week") {
-        const weekAgo = new Date(now);
-        weekAgo.setDate(now.getDate() - 7);
-        return created >= weekAgo;
-      }
-      if (dateFilter.value === "month") {
-        return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
-      }
-      return true;
-    });
-
-    if (sortMethod.value === "lastReviewed") {
-      filteredCards.sort((a,b) => new Date(a.lastReviewed || 0) - new Date(b.lastReviewed || 0));
-    } else if (sortMethod.value === "alphabetical") {
-      filteredCards.sort((a,b) => a.korean.localeCompare(b.korean));
-    } else if (sortMethod.value === "random") {
-      filteredCards.sort(() => Math.random() - 0.5);
-    }
-
-    currentIndex = 0;
-  }
-
-  function showCard() {
-    if (filteredCards.length === 0) {
-      cardDiv.textContent = "No cards to review.";
-      return;
-    }
-    const card = filteredCards[currentIndex];
-    cardDiv.textContent = toggleLanguage.checked ? card.english : card.korean;
-  }
-
-  prevBtn.addEventListener("click", () => {
-    if (filteredCards.length === 0) return;
-    currentIndex = (currentIndex - 1 + filteredCards.length) % filteredCards.length;
-    showCard();
-  });
-
-  nextBtn.addEventListener("click", () => {
-    if (filteredCards.length === 0) return;
-    currentIndex = (currentIndex + 1) % filteredCards.length;
-    showCard();
-  });
-
-  archiveBtn.addEventListener("click", async () => {
-    if (filteredCards.length === 0) return;
-    const card = filteredCards[currentIndex];
-    card.archived = !card.archived;
-    await updateDoc(doc(db, "flashcards", card.id), { archived: card.archived });
-    applyFilters();
-    showCard();
-  });
-
-  markReviewedBtn.addEventListener("click", async () => {
-    if (filteredCards.length === 0) return;
-    const card = filteredCards[currentIndex];
-    card.lastReviewed = new Date().toISOString();
-    card.reviewCount = (card.reviewCount || 0) + 1;
-    await updateDoc(doc(db, "flashcards", card.id), { lastReviewed: card.lastReviewed, reviewCount: card.reviewCount });
-    applyFilters();
-    showCard();
-  });
-
-  dateFilter.addEventListener("change", () => { applyFilters(); showCard(); });
-  sortMethod.addEventListener("change", () => { applyFilters(); showCard(); });
-  showArchived.addEventListener("change", () => { applyFilters(); showCard(); });
-  toggleLanguage.addEventListener("change", showCard);
+  loadFlashcards(filters);
+});
 </script>
 
 </body>
