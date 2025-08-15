@@ -35,19 +35,10 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
+  import { auth, db, app } from "../firebase-setup.js";
+
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDU71Csn0moQ8AGOsPIJOkVMAmVODzZiEU",
-    authDomain: "rockthecat-d9617.firebaseapp.com",
-    projectId: "rockthecat-d9617",
-    storageBucket: "rockthecat-d9617.firebasestorage.app",
-    messagingSenderId: "537950791174",
-    appId: "1:537950791174:web:a5a2434536e3cf95f9c587"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
 
   const userInfo = document.getElementById("user-info");
   const signOutBtn = document.getElementById("sign-out-button");
