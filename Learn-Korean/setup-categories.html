@@ -1,54 +1,107 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Setup Standard Categories</title>
-</head>
-<body>
-<h1>Setting up Standard Categories in Firestore...</h1>
-<div id="status">Starting...</div>
+  <title>Setup Categories</title>
+  <meta charset="UTF-8">
+  <script type="module" src="../firebaseSetup.js"></script>
+  <script type="module">
+    import { auth, db } from '../firebaseSetup.js';
+    import {
+      collection, query, where, getDocs, addDoc,
+      updateDoc, doc, getDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-<script type="module">
-import { db } from "../firebase-setup.js";  // adjust path if needed
-import { collection, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const statusDiv = document.getElementById("status");
-
-async function setupCategories() {
-  try {
-    statusDiv.textContent = "Starting category setup...";
-    console.log("Starting category setup...");
-
-    const standardCategories = [
-      "intro","medical","family","grammar","business",
-      "formal","sino","food","animals","activities","travel","vocabulary"
+    const defaultCategories = [
+      "intro", "medical", "family", "grammar", "business", "formal", "sino",
+      "food", "animals", "activities", "travel", "vocabulary"
     ];
 
-    for (const cat of standardCategories) {
-      console.log("Adding category:", cat);
-      statusDiv.textContent = "Adding category: " + cat;
+    async function isUserAdmin(uid) {
+      const userDoc = await getDoc(doc(db, "users", uid));
+      return userDoc.exists() && userDoc.data().isAdmin === true;
+    }
 
-      await setDoc(doc(db, "categories", cat), {
-        name: cat,
-        isStandard: true
+    async function setupCategoriesForAdmin() {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("Please sign in first.");
+        return;
+      }
+
+      if (!(await isUserAdmin(user.uid))) {
+        alert("You must be an admin to run this setup.");
+        return;
+      }
+
+      const updatedList = [];
+      const createdList = [];
+      const skippedList = [];
+
+      const logArea = document.getElementById("log");
+      logArea.textContent = ""; // clear previous logs
+
+      const standardQuery = query(collection(db, "categories"), where("isStandard", "==", true));
+      const standardSnap = await getDocs(standardQuery);
+
+      if (!standardSnap.empty) {
+        console.log("Standard categories already exist. Updating ownerId where missing...");
+        for (const docSnap of standardSnap.docs) {
+          const data = docSnap.data();
+          if (!data.ownerId) {
+            await updateDoc(doc(db, "categories", docSnap.id), { ownerId: user.uid });
+            updatedList.push(data.name);
+            logArea.textContent += `Updated: ${data.name}\n`;
+          } else {
+            skippedList.push(data.name);
+            logArea.textContent += `Skipped: ${data.name} (already has ownerId)\n`;
+          }
+        }
+      } else {
+        console.log("No standard categories found. Creating all defaults...");
+        for (const name of defaultCategories) {
+          await addDoc(collection(db, "categories"), {
+            name: name,
+            isStandard: true,
+            ownerId: user.uid
+          });
+          createdList.push(name);
+          logArea.textContent += `Created: ${name}\n`;
+        }
+      }
+
+      if (updatedList.length === 0 && createdList.length === 0 && skippedList.length === 0) {
+        logArea.textContent += "No changes were needed.\n";
+      }
+
+      // Add summary
+      logArea.textContent += "\nSummary:\n";
+      logArea.textContent += `Updated: ${updatedList.length}, Created: ${createdList.length}, Skipped: ${skippedList.length}\n`;
+
+      console.log("Setup complete.");
+    }
+
+    // Hook up the button click
+    window.runSetup = function() {
+      setupCategoriesForAdmin().catch(err => {
+        console.error("Error running setup:", err);
+        alert("Error: " + err.message);
       });
     }
 
-    statusDiv.textContent = "All categories added successfully!";
-    console.log("All categories added successfully!");
-
-  } catch (err) {
-    statusDiv.textContent = "Error: " + err.message;
-    console.error("Error during category setup:", err);
-  }
-}
-
-// Run setup
-setupCategories();
-</script>
-
-  
-
-
+    auth.onAuthStateChanged((user) => {
+      const status = document.getElementById("status");
+      if (user) {
+        status.textContent = `Signed in as: ${user.email}`;
+      } else {
+        status.textContent = "Please sign in first.";
+      }
+    });
+  </script>
+</head>
+<body>
+  <h1>Setup Standard Categories</h1>
+  <p id="status">Checking sign-in status...</p>
+  <button onclick="runSetup()">Run Setup</button>
+  <pre id="log"></pre>
 </body>
 </html>
