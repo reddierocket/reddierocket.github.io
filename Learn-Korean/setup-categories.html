@@ -82,6 +82,7 @@
 
     // Hook up the button click
     window.runSetup = function() {
+      logArea.textContent += "\nrunning setup...\n";
     setupCategoriesForAdmin().catch(err => {
     console.error("Error running setup:", err);
     alert("Error: " + err.message);
