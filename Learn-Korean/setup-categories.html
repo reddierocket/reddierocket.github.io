@@ -44,7 +44,7 @@
       const standardSnap = await getDocs(standardQuery);
 
       if (!standardSnap.empty) {
-        console.log("Standard categories already exist. Updating ownerId where missing...");
+        logArea.textContent += "Standard categories already exist. Updating ownerId where missing...\n";
         for (const docSnap of standardSnap.docs) {
           const data = docSnap.data();
           if (!data.ownerId) {
