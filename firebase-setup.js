@@ -1,8 +1,8 @@
-// firebase-setup.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+// Only initialize if no app exists
 const firebaseConfig = {
   apiKey: "AIzaSyDU71Csn0moQ8AGOsPIJOkVMAmVODzZiEU",
   authDomain: "rockthecat-d9617.firebaseapp.com",
@@ -12,7 +12,8 @@ const firebaseConfig = {
   appId: "1:537950791174:web:a5a2434536e3cf95f9c587"
 };
 
-// Initialize Firebase
-export const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+export { auth, db };
