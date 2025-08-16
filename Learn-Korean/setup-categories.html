@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Setup Categories</title> v 17
+  <title>Setup Categories</title> v 18
 </head>
 <body>
   <h1>Setup Standard Categories</h1>
@@ -13,7 +13,7 @@
   <div id="log" style="border:1px solid #ccc; padding:10px; margin-top:10px;"></div>
 
   <script type="module">
-    //import { app, auth, db } from '../firebaseSetup.js';
+    import { app, auth, db } from '../firebase-setup.js';
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { collection, getDocs, doc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
