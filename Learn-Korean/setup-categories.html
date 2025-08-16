@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Setup Categories</title> v 20
+  <title>Setup Categories</title> v 21
 </head>
 <body>
   <h1>Setup Standard Categories</h1>
@@ -45,10 +45,12 @@
           let updates = 0;
           for (const cat of snapshot.docs) {
             const data = cat.data();
+            logMessage("category.name=" + cat.name + ", ownerUid=" + data.ownerUid);
             if (!data.ownerUid) {
               await updateDoc(doc(db, "categories", cat.id), {
                 ownerUid: user.uid
               });
+              logMessage("update for category successful: " + data.name);
               updates++;
             }
           }
