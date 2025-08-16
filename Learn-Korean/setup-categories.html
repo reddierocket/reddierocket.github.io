@@ -16,6 +16,11 @@
       "food", "animals", "activities", "travel", "vocabulary"
     ];
 
+    async function logit(msg) {
+      logArea = document.getElementById("log");
+      logArea.textContent += "\n" + msg + "\n";
+    }
+
     async function isUserAdmin(uid) {
       const userDoc = await getDoc(doc(db, "users", uid));
       return userDoc.exists() && userDoc.data().isAdmin === true;
@@ -37,27 +42,27 @@
       const createdList = [];
       const skippedList = [];
 
-      const logArea = document.getElementById("log");
-      logArea.textContent = "*** log ***\n\n"; // clear previous logs
+      logit("*** log ***\n\n");
 
       const standardQuery = query(collection(db, "categories"), where("isStandard", "==", true));
       const standardSnap = await getDocs(standardQuery);
 
       if (!standardSnap.empty) {
-        logArea.textContent += "Standard categories already exist. Updating ownerId where missing...\n";
+        logit("Standard categories already exist. Updating ownerId where missing...");
         for (const docSnap of standardSnap.docs) {
           const data = docSnap.data();
           if (!data.ownerId) {
             await updateDoc(doc(db, "categories", docSnap.id), { ownerId: user.uid });
             updatedList.push(data.name);
-            logArea.textContent += `Updated: ${data.name}\n`;
+            logit(`Updated: ${data.name}`);
           } else {
             skippedList.push(data.name);
-            logArea.textContent += `Skipped: ${data.name} (already has ownerId)\n`;
+            logit(`Skipped: ${data.name} (already has ownerId)`);
           }
         }
       } else {
         console.log("No standard categories found. Creating all defaults...");
+        logit("No standard categories found. Creating all defaults...");
         for (const name of defaultCategories) {
           await addDoc(collection(db, "categories"), {
             name: name,
@@ -65,24 +70,24 @@
             ownerId: user.uid
           });
           createdList.push(name);
-          logArea.textContent += `Created: ${name}\n`;
+          logit(`Created: ${name}`);
         }
       }
 
       if (updatedList.length === 0 && createdList.length === 0 && skippedList.length === 0) {
-        logArea.textContent += "No changes were needed.\n";
+        logit("No changes were needed.");
       }
 
       // Add summary
-      logArea.textContent += "\nSummary:\n";
-      logArea.textContent += `Updated: ${updatedList.length}, Created: ${createdList.length}, Skipped: ${skippedList.length}\n`;
+      logit("\nSummary:");
+      logit`Updated: ${updatedList.length}, Created: ${createdList.length}, Skipped: ${skippedList.length}`);
 
       console.log("Setup complete.");
     }
 
     // Hook up the button click
     window.runSetup = function() {
-      logArea.textContent += "\nrunning setup...\n";
+      logit("running setup...");
     setupCategoriesForAdmin().catch(err => {
     console.error("Error running setup:", err);
     alert("Error: " + err.message);
@@ -106,5 +111,8 @@
   <button onclick="runSetup()">Run Setup</button>
   <p>Here is the log:</p>
   <pre id="log" style="background:#eee; padding:10px; white-space:pre-wrap;"></pre>
+  <p></p>
+  <p></p>
+  <button onclick="document.getElementById("log").textContent = "">Clear Log</button>
 </body>
 </html>
