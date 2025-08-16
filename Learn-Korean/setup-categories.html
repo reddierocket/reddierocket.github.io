@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Setup Categories</title> v 18
+  <title>Setup Categories</title> v 20
 </head>
 <body>
   <h1>Setup Standard Categories</h1>
@@ -26,14 +26,70 @@
       }
     }
 
-    
+    async function setupCategoriesForAdmin() {
+      try {
+        logMessage("Starting setup...");
+
+        const user = auth.currentUser;
+        if (!user) {
+          throw new Error("No user signed in.");
+        }
+
+        logMessage(`Signed in as: ${user.email}`);
+
+        const categoriesRef = collection(db, "categories");
+        const snapshot = await getDocs(categoriesRef);
+
+        if (!snapshot.empty) {
+          logMessage("Categories exist, updating ownerUid where missing...");
+          let updates = 0;
+          for (const cat of snapshot.docs) {
+            const data = cat.data();
+            if (!data.ownerUid) {
+              await updateDoc(doc(db, "categories", cat.id), {
+                ownerUid: user.uid
+              });
+              updates++;
+            }
+          }
+          logMessage(`Updated ${updates} categories.`);
+        } else {
+          logMessage("No categories found, adding standard set...");
+          const standardCats = [
+            "intro", "medical", "family", "grammar", "business",
+            "formal", "sino", "food", "animals", "activities",
+            "travel", "vocabulary"
+          ];
+          for (const name of standardCats) {
+            await setDoc(doc(categoriesRef), {
+              name: name,
+              isStandard: true,
+              ownerUid: user.uid
+            });
+            logMessage(`Added category: ${name}`);
+          }
+        }
+
         logMessage("Setup complete!");
-     
+      } catch (err) {
+        logMessage(`ERROR: ${err.message}`);
+        console.error(err);
+      }
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        logMessage(`User signed in: ${user.email}`);
+      } else {
+        logMessage("No user signed in. Please sign in first.");
+      }
+    });
+        logMessage("Setup complete!");
 
     // attach handler instead of inline onclick
     document.getElementById("runBtn").addEventListener("click", () => {
       logMessage("ready to run");
-      //setupCategoriesForAdmin();
+      setupCategoriesForAdmin();
     });
 
     
