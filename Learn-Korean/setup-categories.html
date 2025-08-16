@@ -7,9 +7,11 @@
 <body>
   <h1>Setup Standard Categories</h1>
   
-  <button id="runBtn" onClick="logMessage('ready to run')">Run Setup</button>
+  <!-- no inline onclick anymore -->
+  <button id="runBtn">Run Setup</button>
   
   <div id="log" style="border:1px solid #ccc; padding:10px; margin-top:10px;"></div>
+
   <script type="module">
     import { app, auth, db } from '../firebaseSetup.js';
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -19,7 +21,7 @@
       const logDiv = document.getElementById("log");
       logDiv.innerHTML += message + "<br>";
     }
-//<button id="runBtn" onClick="setupCategoriesForAdmin()">Run Setup</button>
+
     async function setupCategoriesForAdmin() {
       try {
         logMessage("Starting setup...");
@@ -71,7 +73,11 @@
       }
     }
 
-    //document.getElementById("runBtn").addEventListener("click", setupCategoriesForAdmin);
+    // attach handler instead of inline onclick
+    document.getElementById("runBtn").addEventListener("click", () => {
+      logMessage("ready to run");
+      setupCategoriesForAdmin();
+    });
 
     onAuthStateChanged(auth, (user) => {
       if (user) {
