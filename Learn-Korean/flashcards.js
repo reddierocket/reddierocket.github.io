@@ -1,4 +1,4 @@
-import { auth, db } from "../firebase-setup.js";  // shared Firebase config
+import { app, auth, db } from "../firebase-setup.js";  // shared Firebase config
 import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 export async function createFlashcard(front, back, categories) {
