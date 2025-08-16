@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Log</title>
+</head>
+<body>
+  <h1>Hello</h1>
+  <div id="log" style="border:1px solid #ccc; padding:10px; margin-top:10px;"></div>
+
+  <script>
+    function log(message) {
+      const logDiv = document.getElementById("log");
+      logDiv.innerHTML += message + "<br>";
+    }
+
+    log("Page loaded!");
+    log("This is a test message.");
+  </script>
+</body>
+</html>
