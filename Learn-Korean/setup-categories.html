@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Setup Categories</title> version 1
+  <title>Setup Categories</title> version 2
   <meta charset="UTF-8">
   <script type="module" src="../firebaseSetup.js"></script>
   <script type="module">
@@ -17,8 +17,8 @@
     ];
 
     async function logit(msg) {
-      logArea = document.getElementById("log");
-      logArea.textContent += "\n" + msg + "\n";
+      let logArea = document.getElementById("log");
+      logArea.value += "\n" + msg + "\n";
     }
 
     async function isUserAdmin(uid) {
@@ -110,9 +110,13 @@
   <p id="status">Checking sign-in status...</p>
   <button onclick="runSetup()">Run Setup</button>
   <p>Here is the log:</p>
+  <textarea id="log" name="log" rows="12" cols="60">
+  Hello
+</textarea>
+
   <pre id="log" style="background:#eee; padding:10px; white-space:pre-wrap;"></pre>
   <p></p>
   <p></p>
-  <button onclick="document.getElementById("log").textContent = "">Clear Log</button>
+  <button onclick="document.getElementById("log").value = "">Clear Log</button>
 </body>
 </html>
