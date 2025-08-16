@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Setup Categories</title> version 2
+  <title>Setup Categories</title> version 3
   <meta charset="UTF-8">
   <script type="module" src="../firebaseSetup.js"></script>
   <script type="module">
@@ -18,7 +18,12 @@
 
     async function logit(msg) {
       let logArea = document.getElementById("log");
-      logArea.value += "\n" + msg + "\n";
+      logArea.value += "\r\n" + msg + "\r\n";
+    }
+
+    async function logclear() {
+      let logArea = document.getElementById("log");
+      logArea.value = "";
     }
 
     async function isUserAdmin(uid) {
@@ -91,7 +96,7 @@
     setupCategoriesForAdmin().catch(err => {
     console.error("Error running setup:", err);
     alert("Error: " + err.message);
-    document.getElementById("log").textContent += `\nError: ${err.message}`;
+      logit(`Error: ${err.message}`);
   });
 }
 
