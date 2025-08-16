@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Setup Categories</title> v 1
+  <title>Setup Categories</title> v 2
 </head>
 <body>
   <h1>Setup Standard Categories</h1>
@@ -14,10 +14,10 @@
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { collection, getDocs, doc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+    <script>
     function logMessage(message) {
-      const logEl = document.getElementById("log");
-      logEl.textContent += message + "\n";
-      console.log(message); // still logs in console if available
+      const logDiv = document.getElementById("log");
+      logDiv.innerHTML += message + "<br>";
     }
 
     async function setupCategoriesForAdmin() {
