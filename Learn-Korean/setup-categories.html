@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Setup Categories</title> v 14
+  <title>Setup Categories</title> v 15
 </head>
 <body>
   <h1>Setup Standard Categories</h1>
@@ -20,9 +20,9 @@
     function logMessage(message) {
       const logDiv = document.getElementById("log");
       if (logDiv) {
-        alert("log element not found");
-      } else {
         logDiv.innerHTML += message + "<br>";
+      } else {
+        alert("log element not found: " + message);
       }
     }
 
@@ -33,7 +33,7 @@
     // attach handler instead of inline onclick
     document.getElementById("runBtn").addEventListener("click", () => {
       logMessage("ready to run");
-      setupCategoriesForAdmin();
+      //setupCategoriesForAdmin();
     });
 
     
