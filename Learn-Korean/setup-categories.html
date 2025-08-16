@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Setup Categories</title> version 4
+  <title>Setup Categories</title> version 5
   <meta charset="UTF-8">
   <script type="module" src="../firebaseSetup.js"></script>
   <script type="module">
@@ -17,13 +17,13 @@
     ];
 
     async function logit(msg) {
-      let logArea = document.getElementById("log");
+      logArea = document.getElementById("log");
       logArea.value += "\r\n" + msg + "\r\n";
       alert(msg);
     }
 
     async function logclear() {
-      let logArea = document.getElementById("log");
+      logArea = document.getElementById("log");
       logArea.value = "";
     }
 
