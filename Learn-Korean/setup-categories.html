@@ -38,7 +38,9 @@
         logMessage(`Signed in as: ${user.email}`);
 
         const categoriesRef = collection(db, "categories");
+        logMessage("getting documents from categories");
         const snapshot = await getDocs(categoriesRef);
+        logMessage("back from getting documents");
 
         if (!snapshot.empty) {
           logMessage("Categories exist, updating ownerUid where missing...");
