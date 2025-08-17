@@ -47,7 +47,7 @@
           let updates = 0;
           for (const cat of snapshot.docs) {
             const data = cat.data();
-            logMessage("category.name=" + cat.name + ", ownerUid=" + data.ownerUid);
+            logMessage("category.name=" + data.name + ", ownerUid=" + data.ownerUid);
             if (!data.ownerUid) {
               await updateDoc(doc(db, "categories", cat.id), {
                 ownerUid: user.uid
