@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Setup Categories</title> v 22
+  <title>Setup Categories</title> v 23
 </head>
 <body>
   <h1>Setup Standard Categories</h1>
@@ -33,6 +33,19 @@
         const user = auth.currentUser;
         if (!user) {
           throw new Error("No user signed in.");
+        }
+
+        logMessage("verifying user");
+        const uref = collection(db, "users");
+        logMessage("getting user doc");
+        const usnap = await getDocs(uref);
+        if (usnap.empty) {
+          logMessage("no users!"):
+          return;
+        }
+        for (const udoc of usnap.docs) {
+          const udata = udoc.data();
+          logMessage("user uid: " + user.uid + ", user doc uid: " + udata.uid);
         }
 
         logMessage(`Signed in as: ${user.email}`);
